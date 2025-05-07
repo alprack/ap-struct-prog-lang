@@ -49,6 +49,17 @@ def test_parse_factor():
     ast, tokens = parse_factor(tokens)
     assert ast == {'tag': '+', 'left': {'tag': 'number', 'value': 2}, 'right': {'tag': 'number', 'value': 3}}
 
+    tokens = tokenize("((1+2))") #test double nested statement
+    ast, tokens = parse_factor(tokens)
+    assert ast == {'tag': '+','left': {'tag': 'number', 'value': 1},'right': {'tag': 'number', 'value': 2}}
+
+    for s in ["1","(22)","((333))"]: #test mixed nested
+        tokens = tokenize(s)
+        ast, tokens = parse_factor(tokens)
+        s_n = s.replace("(","").replace(")","")
+        assert ast=={'tag': 'number', 'value': int(s_n)}
+        assert tokens[0]['tag'] == None  
+
 def parse_term(tokens):
     """
     term = factor { "*"|"/" factor }
@@ -77,6 +88,16 @@ def test_parse_term():
     tokens = tokenize("2*4/6")
     ast, tokens = parse_term(tokens)
     assert ast == {'tag': '/', 'left': {'tag': '*', 'left': {'tag': 'number', 'value': 2}, 'right': {'tag': 'number', 'value': 4}}, 'right': {'tag': 'number', 'value': 6}}
+
+    tokens = tokenize("(1+2)*3") #test nested multiplications
+    ast, tokens = parse_term(tokens)
+    assert ast == {'tag': '*','left': {'tag': '+','left': {'tag': 'number', 'value': 1},'right': {'tag': 'number', 'value': 2}},'right': {'tag': 'number', 'value': 3}}
+    assert tokens[0]['tag'] == None 
+
+    tokens = tokenize("(1+2)/3") #test nested division
+    ast, tokens = parse_term(tokens)
+    assert ast == {'tag': '/','left': {'tag': '+','left': {'tag': 'number', 'value': 1},'right': {'tag': 'number', 'value': 2}},'right': {'tag': 'number', 'value': 3}}
+    assert tokens[0]['tag'] == None 
 
 def parse_expression(tokens):
     """
